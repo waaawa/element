@@ -92,6 +92,14 @@
       placeholder="选择月">
     </el-date-picker>
   </div>
+  <div class="block">
+    <span class="demonstration">月-多选</span>
+    <el-date-picker
+      v-model="value8"
+      type="months"
+      placeholder="选择月">
+    </el-date-picker>
+  </div>
 </div>
 <div class="container">
   <div class="block">
@@ -99,6 +107,14 @@
     <el-date-picker
       v-model="value3"
       type="year"
+      placeholder="选择年">
+    </el-date-picker>
+  </div>
+  <div class="block">
+    <span class="demonstration">年-多选</span>
+    <el-date-picker
+      v-model="value7"
+      type="years"
       placeholder="选择年">
     </el-date-picker>
   </div>
@@ -119,7 +135,9 @@
         value1: '',
         value2: '',
         value3: '',
-        value4: ''
+        value4: '',
+        value7: '',
+        value8: ''
       };
     }
   };

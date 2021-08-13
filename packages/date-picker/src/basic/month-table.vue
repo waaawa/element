@@ -205,6 +205,9 @@
             }
             this.rangeState.selecting = false;
           }
+        } else if (this.selectionMode === 'months') {
+          const months = [...(this.value || []), newDate];
+          this.$emit('pick', months, true);
         } else {
           this.$emit('pick', month);
         }

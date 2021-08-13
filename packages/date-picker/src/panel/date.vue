@@ -96,12 +96,12 @@
               :value="value"
               :default-value="defaultValue ? new Date(defaultValue) : null"
               :date="date"
-              :cell-class-name="cellClassName"
               :disabled-date="disabledDate">
             </date-table>
             <year-table
               v-show="currentView === 'year'"
               @pick="handleYearPick"
+              :selection-mode="selectionMode"
               :value="value"
               :default-value="defaultValue ? new Date(defaultValue) : null"
               :date="date"
@@ -110,6 +110,7 @@
             <month-table
               v-show="currentView === 'month'"
               @pick="handleMonthPick"
+              :selection-mode="selectionMode"
               :value="value"
               :default-value="defaultValue ? new Date(defaultValue) : null"
               :date="date"
@@ -162,6 +163,7 @@
     extractTimeFormat,
     timeWithinRange
   } from 'element-ui/src/utils/date-util';
+  import { removeRepetition } from 'element-ui/src/utils/util';
   import Clickoutside from 'element-ui/src/utils/clickoutside';
   import Locale from 'element-ui/src/mixins/locale';
   import ElInput from 'element-ui/packages/input';
@@ -189,7 +191,7 @@
       },
 
       value(val) {
-        if (this.selectionMode === 'dates' && this.value) return;
+        if ((this.selectionMode === 'dates' || this.selectionMode === 'years' || this.selectionMode === 'months') && this.value) return;
         if (isDate(val)) {
           this.date = new Date(val);
         } else {
@@ -215,6 +217,10 @@
           }
         } else if (newVal === 'dates') {
           this.currentView = 'date';
+        } else if (newVal === 'years') {
+          this.currentView = 'year';
+        } else if (newVal === 'months') {
+          this.currentView = 'month';
         }
       }
     },
@@ -245,8 +251,14 @@
         if (!value) {
           this.$emit('pick', value, ...args);
         } else if (Array.isArray(value)) {
-          const dates = value.map(date => this.showTime ? clearMilliseconds(date) : clearTime(date));
-          this.$emit('pick', dates, ...args);
+          if (this.selectionMode === 'years') {
+            this.$emit('pick', value, ...args);
+          } else if (this.selectionMode === 'months') {
+            this.$emit('pick', value, ...args);
+          } else {
+            const dates = value.map(date => this.showTime ? clearMilliseconds(date) : clearTime(date));
+            this.$emit('pick', dates, ...args);
+          }
         } else {
           this.$emit('pick', this.showTime ? clearMilliseconds(value) : clearTime(value), ...args);
         }
@@ -328,6 +340,16 @@
         if (this.selectionMode === 'month') {
           this.date = modifyDate(this.date, this.year, month, 1);
           this.emit(this.date);
+        } else if (this.selectionMode === 'months') {
+          let months = month.map(item => (item instanceof Date ? item : modifyDate(this.date, this.year, item, 1)));
+          let key = '';
+          months = removeRepetition(months, (dict, item) => {
+            key = String(item.getTime() / 1000);
+            if (dict[key]) delete dict[key];
+            else dict[key] = item;
+            return dict;
+          });
+          this.emit(months, true);
         } else {
           this.date = changeYearMonthAndClampDate(this.date, this.year, month);
           // TODO: should emit intermediate value ??
@@ -358,6 +380,9 @@
         if (this.selectionMode === 'year') {
           this.date = modifyDate(this.date, year, 0, 1);
           this.emit(this.date);
+        } else if (this.selectionMode === 'years') {
+          const years = year.map(date => modifyDate(this.date, date, 0, 1));
+          this.emit(years, true);
         } else {
           this.date = changeYearMonthAndClampDate(this.date, year, this.month);
           // TODO: should emit intermediate value ??
@@ -390,9 +415,9 @@
       },
 
       resetView() {
-        if (this.selectionMode === 'month') {
+        if (this.selectionMode === 'month' || this.selectionMode === 'months') {
           this.currentView = 'month';
-        } else if (this.selectionMode === 'year') {
+        } else if (this.selectionMode === 'year' || this.selectionMode === 'years') {
           this.currentView = 'year';
         } else {
           this.currentView = 'date';
@@ -412,7 +437,7 @@
         const keyCode = event.keyCode;
         const list = [38, 40, 37, 39];
         if (this.visible && !this.timePickerVisible) {
-          if (list.indexOf(keyCode) !== -1) {
+          if (list.indexOf(keyCode) !== -1 && this.selectionMode !== 'years' && this.selectionMode !== 'months') {
             this.handleKeyControl(keyCode);
             event.stopPropagation();
             event.preventDefault();

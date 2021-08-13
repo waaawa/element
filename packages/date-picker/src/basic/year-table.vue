@@ -46,12 +46,17 @@
 <script type="text/babel">
   import { hasClass } from 'element-ui/src/utils/dom';
   import { isDate, range, nextDate, getDayCountOfYear } from 'element-ui/src/utils/date-util';
-  import { arrayFindIndex, coerceTruthyValueToArray } from 'element-ui/src/utils/util';
+  import { arrayFindIndex, coerceTruthyValueToArray, removeRepetition } from 'element-ui/src/utils/util';
 
   const datesInYear = year => {
     const numOfDays = getDayCountOfYear(year);
     const firstDay = new Date(year, 0, 1);
     return range(numOfDays).map(n => nextDate(firstDay, n));
+  };
+
+  const removeFromArray = function(arr, pred) {
+    const idx = typeof pred === 'function' ? arrayFindIndex(arr, pred) : arr.indexOf(pred);
+    return idx >= 0 ? [...arr.slice(0, idx), ...arr.slice(idx + 1)] : arr;
   };
 
   export default {
@@ -61,8 +66,11 @@
       defaultValue: {
         validator(val) {
           // null or valid Date Object
-          return val === null || (val instanceof Date && isDate(val));
+          return val === null || isDate(val) || (Array.isArray(val) && val.every(isDate));
         }
+      },
+      selectionMode: {
+        default: 'year'
       },
       date: {}
     },
@@ -83,17 +91,29 @@
           : false;
         style.current = arrayFindIndex(coerceTruthyValueToArray(this.value), date => date.getFullYear() === year) >= 0;
         style.today = today.getFullYear() === year;
-        style.default = this.defaultValue && this.defaultValue.getFullYear() === year;
+        style.default = this.defaultValue && (Array.isArray(this.defaultValue)
+          ? this.defaultValue.some(e => e.getFullYear() === year)
+          : this.defaultValue.getFullYear() === year);
 
         return style;
       },
 
       handleYearTableClick(event) {
         const target = event.target;
+        let selected = false;
         if (target.tagName === 'A') {
+          selected = target.parentNode.classList.contains('current');
           if (hasClass(target.parentNode, 'disabled')) return;
           const year = target.textContent || target.innerText;
-          this.$emit('pick', Number(year));
+          if (this.selectionMode === 'years') {
+            const value = removeRepetition((this.value || []).map(e => e instanceof Date ? e.getFullYear() : e));
+            const newVal = selected
+              ? removeFromArray(value, date => date === Number(year))
+              : [...value, year];;
+            this.$emit('pick', newVal);
+          } else {
+            this.$emit('pick', Number(year));
+          }
         }
       }
     }
