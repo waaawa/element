@@ -111,6 +111,8 @@
               ? removeFromArray(value, date => date === Number(year))
               : [...value, year];;
             this.$emit('pick', newVal);
+          } else if (this.selectionMode === 'range') {
+            console.log(year);
           } else {
             this.$emit('pick', Number(year));
           }
