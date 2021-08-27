@@ -37,6 +37,7 @@
               :max-date="maxDate"
               :range-state="rangeState"
               :disabled-date="disabledDate"
+              :visible='visible'
               @changerange="handleChangeRange"
               @pick="handleRangePick">
             </year-table>

@@ -131,7 +131,7 @@ const HAVE_TRIGGER_TYPES = [
   'year',
   'daterange',
   'monthrange',
-  'yeaerrange',
+  'yearrange',
   'timerange',
   'datetimerange',
   'dates',
@@ -959,3 +959,9 @@ export default {
   }
 };
 </script>
+
+<style lang="scss">
+  .el-date-editor--yearrange{
+    width: 300px;
+  }
+</style>

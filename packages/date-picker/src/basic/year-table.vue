@@ -1,7 +1,15 @@
 <template>
   <table @click="handleYearTableClick" class="el-year-table">
     <tbody>
-    <tr>
+      <tr v-for="(row,ri) in grid" :key="`row${ri}`">
+        <td class="available" v-for="(col, ci) in row" :key="`column${ci}`" 
+        :class="[getCellStyle(startYear + col), style[col]]">
+          <div>
+            <a class="cell">{{ startYear + col }}</a>
+          </div>
+        </td>
+      </tr>
+    <!-- <tr>
       <td class="available" :class="getCellStyle(startYear + 0)">
         <a class="cell">{{ startYear }}</a>
       </td>
@@ -38,7 +46,7 @@
       </td>
       <td></td>
       <td></td>
-    </tr>
+    </tr> -->
     </tbody>
   </table>
 </template>
@@ -72,24 +80,70 @@
       selectionMode: {
         default: 'year'
       },
-      date: {}
+      date: {},
+      minDate: {},
+      maxDate: {},
+      visible: {
+        type: Boolean,
+        require: true
+      },
+      rangeState: {
+        default() {
+          return {
+            endDate: null,
+            selecting: false
+          };
+        }
+      }
     },
-
+    data() {
+      return {
+        grid: [
+          [0, 1, 2, 3],
+          [4, 5, 6, 7],
+          [8, 9]
+        ],
+        style: {}
+      };
+    },
     computed: {
       startYear() {
         return Math.floor(this.date.getFullYear() / 10) * 10;
       }
     },
-
+    created() {
+      this.initStyle();
+    },
+    watch: {
+      visible(n) {
+        if (!n) {
+          this.initStyle();
+          this.setStyle(this);
+        }
+      }
+    },
     methods: {
+      initStyle() {
+        this.grid.flat(Infinity).forEach(e => {
+          this.style[e] = {};
+        });
+      },
       getCellStyle(year) {
         const style = {};
         const today = new Date();
 
+        if (this.selectionMode === 'range') {
+          if (this.minDate && this.maxDate) {
+            style.current = false;
+          } else {
+            style.current = false;
+          }
+        } else {
+          style.current = arrayFindIndex(coerceTruthyValueToArray(this.value), date => date.getFullYear() === year) >= 0;
+        }
         style.disabled = typeof this.disabledDate === 'function'
           ? datesInYear(year).every(this.disabledDate)
           : false;
-        style.current = arrayFindIndex(coerceTruthyValueToArray(this.value), date => date.getFullYear() === year) >= 0;
         style.today = today.getFullYear() === year;
         style.default = this.defaultValue && (Array.isArray(this.defaultValue)
           ? this.defaultValue.some(e => e.getFullYear() === year)
@@ -97,7 +151,16 @@
 
         return style;
       },
-
+      setStyle({ minDate, maxDate }) {
+        if (minDate) {
+          const pre = String(minDate.getFullYear()).charAt(3);
+          this.style[pre]['start-date'] = true;
+        }
+        if (maxDate) {
+          const suf = String(maxDate.getFullYear()).charAt(3);
+          this.style[suf]['end-date'] = true;
+        }
+      },
       handleYearTableClick(event) {
         const target = event.target;
         let selected = false;
@@ -112,7 +175,24 @@
               : [...value, year];;
             this.$emit('pick', newVal);
           } else if (this.selectionMode === 'range') {
-            console.log(year);
+            this.initStyle();
+            const newVal = new Date(year);
+            let param = null;
+            if (!this.rangeState.selecting) {
+              param = { minDate: newVal, maxDate: null };
+              this.$emit('pick', param, false);
+              this.rangeState.selecting = true;
+            } else {
+              param = null;
+              if (this.minDate > newVal) {
+                param = { minDate: newVal, maxDate: this.minDate };
+              } else {
+                param = { minDate: this.minDate, maxDate: newVal };
+              }
+              this.$emit('pick', param);
+              this.rangeState.selecting = false;
+            }
+            this.setStyle(param);
           } else {
             this.$emit('pick', Number(year));
           }
