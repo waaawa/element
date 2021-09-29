@@ -2,7 +2,7 @@
     <transition name="el-zoom-in-top" @after-leave="$emit('dodestroy')">
     <div
       v-show="visible"
-      class="el-picker-panel el-date-range-picker el-popper"
+      class="el-picker-panel el-year-range-picker el-popper"
       :class="[{
         'has-sidebar': $slots.sidebar || shortcuts
       }, popperClass]">
@@ -17,8 +17,8 @@
             @click="handleShortcutClick(shortcut)">{{shortcut.text}}</button>
         </div>
         <div class="el-picker-panel__body">
-          <div class="el-picker-panel__content el-date-range-picker__content">
-            <div class="el-date-range-picker__header">
+          <div class="el-picker-panel__content el-year-range-picker__content">
+            <div class="el-year-range-picker__header">
               <button
                 type="button"
                 @click="leftPrevYear"

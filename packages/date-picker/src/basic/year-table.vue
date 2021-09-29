@@ -1,5 +1,5 @@
 <template>
-  <table @click="handleYearTableClick" class="el-year-table">
+  <table @click="handleYearTableClick" @mouseover="handleYearTalbeHover" class="el-year-table">
     <tbody>
       <tr v-for="(row,ri) in grid" :key="`row${ri}`">
         <td class="available" v-for="(col, ci) in row" :key="`column${ci}`" 
@@ -63,8 +63,12 @@
   };
 
   const removeFromArray = function(arr, pred) {
-    const idx = typeof pred === 'function' ? arrayFindIndex(arr, pred) : arr.indexOf(pred);
-    return idx >= 0 ? [...arr.slice(0, idx), ...arr.slice(idx + 1)] : arr;
+    const idx = typeof pred === 'function'
+      ? arrayFindIndex(arr, pred)
+      : arr.indexOf(pred);
+    return idx >= 0
+      ? [...arr.slice(0, idx), ...arr.slice(idx + 1)]
+      : arr;
   };
 
   export default {
@@ -81,8 +85,8 @@
         default: 'year'
       },
       date: {},
-      minDate: {},
-      maxDate: {},
+      minDate: null,
+      maxDate: null,
       visible: {
         type: Boolean,
         require: true
@@ -123,6 +127,24 @@
       }
     },
     methods: {
+      handleYearTalbeHover(event) {
+        if (this.selectionMode !== 'range') return;
+        const target = event.target;
+        const isCell = target.hasAttribute('class') && target.getAttribute('class').indexOf('cell') !== -1;
+        const year = target.textContent || target.innerText;
+        const newVal = new Date(year);
+        let param = null;
+        if (isCell && this.minDate && !this.maxDate) {
+          if (this.minDate > newVal) {
+            param = { minDate: newVal, maxDate: this.minDate };
+          } else {
+            param = { minDate: this.minDate, maxDate: newVal };
+          }
+          this.initStyle();
+          this.setStyle(param);
+          this.$forceUpdate();
+        }
+      },
       initStyle() {
         this.grid.flat(Infinity).forEach(e => {
           this.style[e] = {};
@@ -152,27 +174,35 @@
         return style;
       },
       setStyle({ minDate, maxDate }) {
+        let begin = null;
+        let end = null;
         if (minDate) {
-          const pre = String(minDate.getFullYear()).charAt(3);
-          this.style[pre]['start-date'] = true;
+          begin = String(minDate.getFullYear()).charAt(3);
+          this.style[begin]['start-date'] = true;
         }
         if (maxDate) {
-          const suf = String(maxDate.getFullYear()).charAt(3);
-          this.style[suf]['end-date'] = true;
+          end = String(maxDate.getFullYear()).charAt(3);
+          this.style[end]['end-date'] = true;
+        }
+        if (begin && end && begin !== end) {
+          const len = Math.abs(end - begin);
+          for (let i = 0; i <= len; i++) {
+            this.style[+begin + i]['in-range'] = true;
+          }
         }
       },
       handleYearTableClick(event) {
         const target = event.target;
         let selected = false;
         if (target.tagName === 'A') {
-          selected = target.parentNode.classList.contains('current');
+          selected = target.parentNode.parentNode.classList.contains('current');
           if (hasClass(target.parentNode, 'disabled')) return;
           const year = target.textContent || target.innerText;
           if (this.selectionMode === 'years') {
             const value = removeRepetition((this.value || []).map(e => e instanceof Date ? e.getFullYear() : e));
             const newVal = selected
               ? removeFromArray(value, date => date === Number(year))
-              : [...value, year];;
+              : [...value, year];
             this.$emit('pick', newVal);
           } else if (this.selectionMode === 'range') {
             this.initStyle();
