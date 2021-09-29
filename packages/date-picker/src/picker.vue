@@ -959,9 +959,3 @@ export default {
   }
 };
 </script>
-
-<style lang="scss">
-  .el-date-editor--yearrange{
-    width: 300px;
-  }
-</style>

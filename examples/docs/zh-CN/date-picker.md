@@ -292,7 +292,8 @@
 
 可在一个选择器中便捷地选择一个年份范围
 
-:::demo 在选择月份范围时，默认情况下左右面板会联动。如果希望两个面板各自独立切换当前年份，可以使用`unlink-panels`属性解除联动。
+:::demo 年范围选择
+
 ```html
 <template>
   <div class="block">
@@ -301,9 +302,9 @@
       v-model="value1"
       type="yearrange"
       range-separator="至"
-      start-placeholder="开始月份"
+      start-placeholder="开始年份"
       :unlink-panels="true"
-      end-placeholder="结束月份">
+      end-placeholder="结束年份">
     </el-date-picker>
   </div>
   <div class="block">
@@ -314,8 +315,8 @@
       align="right"
       unlink-panels
       range-separator="至"
-      start-placeholder="开始月份"
-      end-placeholder="结束月份"
+      start-placeholder="开始年份"
+      end-placeholder="结束年份"
       :picker-options="pickerOptions">
     </el-date-picker>
   </div>
