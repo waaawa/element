@@ -56,6 +56,14 @@
   import { isDate, range, nextDate, getDayCountOfYear } from 'element-ui/src/utils/date-util';
   import { arrayFindIndex, coerceTruthyValueToArray, removeRepetition } from 'element-ui/src/utils/util';
 
+  const getStartYear = (v) => {
+    return Math.floor(v / 10) * 10;
+  };
+
+  const getEndYear = (v) => {
+    return Math.ceil(v / 10 + 1) * 10 - 1;
+  };
+
   const datesInYear = year => {
     const numOfDays = getDayCountOfYear(year);
     const firstDay = new Date(year, 0, 1);
@@ -112,7 +120,7 @@
     },
     computed: {
       startYear() {
-        return Math.floor(this.date.getFullYear() / 10) * 10;
+        return getStartYear(this.date.getFullYear());
       }
     },
     created() {
@@ -120,10 +128,14 @@
     },
     watch: {
       visible(n) {
-        if (!n) {
-          this.initStyle();
-          this.setStyle(this);
-        }
+        if (n) return;
+        this.initStyle();
+        this.setStyle(this);
+      },
+      startYear(n, o) {
+        if (n === o) return;
+        this.initStyle();
+        this.setStyle(this);
       }
     },
     methods: {
@@ -177,17 +189,37 @@
         let begin = null;
         let end = null;
         if (minDate) {
-          begin = String(minDate.getFullYear()).charAt(3);
-          this.style[begin]['start-date'] = true;
+          begin = String(minDate.getFullYear());
+          if (getStartYear(begin) === this.startYear) {
+            this.style[begin.charAt(3)]['start-date'] = true;
+          }
         }
         if (maxDate) {
-          end = String(maxDate.getFullYear()).charAt(3);
-          this.style[end]['end-date'] = true;
+          end = String(maxDate.getFullYear());
+          if (getStartYear(end) === this.startYear) {
+            this.style[end.charAt(3)]['end-date'] = true;
+          }
         }
-        if (begin && end && begin !== end) {
-          const len = Math.abs(end - begin);
-          for (let i = 0; i <= len; i++) {
-            this.style[+begin + i]['in-range'] = true;
+        if (begin && end) {
+          let flag = false;
+          let s = 0;
+          let e = 9;
+          const a = this.startYear;
+          const b = getEndYear(this.startYear);
+          if (begin >= a && begin <= b) {
+            s = +begin.charAt(3);
+            if (end <= b) e = +end.charAt(3);
+          } else if (end >= a && end <= b) {
+            e = end.charAt(3);
+            if (begin >= a) s = +end.charAt(3);
+          } else if (begin < a && end > b) {
+            flag = false;
+          } else {
+            flag = true;
+          }
+          if (flag) return;
+          for (; s <= e; s++) {
+            this.style[s]['in-range'] = true;
           }
         }
       },
