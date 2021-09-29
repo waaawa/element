@@ -115,8 +115,11 @@ const DEFAULT_FORMATS = {
   timerange: 'HH:mm:ss',
   daterange: 'yyyy-MM-dd',
   monthrange: 'yyyy-MM',
+  yearrange: 'yyyy',
   datetimerange: 'yyyy-MM-dd HH:mm:ss',
-  year: 'yyyy'
+  year: 'yyyy',
+  years: 'yyyy',
+  months: 'yyyy-MM'
 };
 const HAVE_TRIGGER_TYPES = [
   'date',
@@ -128,9 +131,12 @@ const HAVE_TRIGGER_TYPES = [
   'year',
   'daterange',
   'monthrange',
+  'yearrange',
   'timerange',
   'datetimerange',
-  'dates'
+  'dates',
+  'years',
+  'months'
 ];
 const DATE_FORMATTER = function(value, format) {
   if (format === 'timestamp') return value.getTime();
@@ -211,6 +217,10 @@ const TYPE_VALUE_RESOLVER_MAP = {
     formatter: RANGE_FORMATTER,
     parser: RANGE_PARSER
   },
+  yearrange: {
+    formatter: RANGE_FORMATTER,
+    parser: RANGE_PARSER
+  },
   datetimerange: {
     formatter: RANGE_FORMATTER,
     parser: RANGE_PARSER
@@ -247,6 +257,24 @@ const TYPE_VALUE_RESOLVER_MAP = {
     }
   },
   dates: {
+    formatter(value, format) {
+      return value.map(date => DATE_FORMATTER(date, format));
+    },
+    parser(value, format) {
+      return (typeof value === 'string' ? value.split(', ') : value)
+        .map(date => date instanceof Date ? date : DATE_PARSER(date, format));
+    }
+  },
+  years: {
+    formatter(value, format) {
+      return value.map(date => DATE_FORMATTER(date, format));
+    },
+    parser(value, format) {
+      return (typeof value === 'string' ? value.split(', ') : value)
+        .map(date => date instanceof Date ? date : DATE_PARSER(date, format));
+    }
+  },
+  months: {
     formatter(value, format) {
       return value.map(date => DATE_FORMATTER(date, format));
     },
@@ -489,6 +517,10 @@ export default {
         return 'year';
       } else if (this.type === 'dates') {
         return 'dates';
+      } else if (this.type === 'years') {
+        return 'years';
+      } else if (this.type === 'months') {
+        return 'months';
       }
 
       return 'day';
@@ -511,7 +543,7 @@ export default {
       } else if (this.userInput !== null) {
         return this.userInput;
       } else if (formattedValue) {
-        return this.type === 'dates'
+        return (this.type === 'dates' || this.type === 'years' || this.type === 'months')
           ? formattedValue.join(', ')
           : formattedValue;
       } else {
@@ -927,3 +959,9 @@ export default {
   }
 };
 </script>
+
+<style lang="scss">
+  .el-date-editor--yearrange{
+    width: 300px;
+  }
+</style>

@@ -239,3 +239,12 @@ export function objToArray(obj) {
   }
   return isEmpty(obj) ? [] : [obj];
 }
+
+export const removeRepetition = function(arr, fn) {
+  arr = coerceTruthyValueToArray(arr);
+  fn = typeof fn === 'function' ? fn : function(dict, item) {
+    dict[item] = item;
+    return dict;
+  };
+  return Object.values(arr.reduce(fn, {}));
+};
