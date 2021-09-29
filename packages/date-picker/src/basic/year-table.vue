@@ -128,9 +128,11 @@
     },
     watch: {
       visible(n) {
-        if (n) return;
         this.initStyle();
         this.setStyle(this);
+        if (!n) {
+          this.rangeState.selecting = false;
+        }
       },
       startYear(n, o) {
         if (n === o) return;
@@ -142,7 +144,7 @@
       handleYearTalbeHover(event) {
         if (this.selectionMode !== 'range') return;
         const target = event.target;
-        const isCell = target.hasAttribute('class') && target.getAttribute('class').indexOf('cell') !== -1;
+        const isCell = hasClass(target, 'cell');
         const year = target.textContent || target.innerText;
         const newVal = new Date(year);
         let param = null;
@@ -227,7 +229,7 @@
         const target = event.target;
         let selected = false;
         if (target.tagName === 'A') {
-          selected = target.parentNode.parentNode.classList.contains('current');
+          selected = hasClass(target.parentNode.parentNode, 'current');
           if (hasClass(target.parentNode, 'disabled')) return;
           const year = target.textContent || target.innerText;
           if (this.selectionMode === 'years') {
