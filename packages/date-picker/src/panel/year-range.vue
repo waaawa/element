@@ -203,26 +203,26 @@
 
       // leftPrev*, rightNext* need to take care of `unlinkPanels`
       leftPrevYear() {
-        this.leftDate = prevYear(this.leftDate);
+        this.leftDate = prevYear(this.leftDate, 10);
         if (!this.unlinkPanels) {
-          this.rightDate = prevYear(this.rightDate);
+          this.rightDate = prevYear(this.rightDate, 10);
         }
       },
 
       rightNextYear() {
         if (!this.unlinkPanels) {
-          this.leftDate = nextYear(this.leftDate);
+          this.leftDate = nextYear(this.leftDate, 10);
         }
-        this.rightDate = nextYear(this.rightDate);
+        this.rightDate = nextYear(this.rightDate, 10);
       },
 
       // leftNext*, rightPrev* are called when `unlinkPanels` is true
       leftNextYear() {
-        this.leftDate = nextYear(this.leftDate);
+        this.leftDate = nextYear(this.leftDate, 10);
       },
 
       rightPrevYear() {
-        this.rightDate = prevYear(this.rightDate);
+        this.rightDate = prevYear(this.rightDate, 10);
       },
 
       handleConfirm(visible = false) {
