@@ -78,8 +78,8 @@ describe('${ComponentName}', () => {
   },
   {
     filename: path.join('../../packages/theme-chalk/src', `${componentname}.scss`),
-    content: `@import "mixins/mixins";
-@import "common/var";
+    content: `@use "mixins/mixins";
+@use "common/var";
 
 @include b(${componentname}) {
 }`
@@ -107,7 +107,7 @@ fileSave(path.join(__dirname, '../../components.json'))
 
 // 添加到 index.scss
 const sassPath = path.join(__dirname, '../../packages/theme-chalk/src/index.scss');
-const sassImportText = `${fs.readFileSync(sassPath)}@import "./${componentname}.scss";`;
+const sassImportText = `${fs.readFileSync(sassPath)}@use "./${componentname}.scss";`;
 fileSave(sassPath)
   .write(sassImportText, 'utf8')
   .end('\n');
